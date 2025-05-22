@@ -1,7 +1,7 @@
 # 🛡️ Malware Infection Prediction
 
 ## 🔍 Overview
-This project aims to **predict the probability of a system getting infected by various families of malware** using telemetry data collected by antivirus software. The data consists of machine-level attributes such as OS details, hardware configuration, antivirus versioning, and real-time protection status. This prediction task is framed as a **binary classification problem**, where the target variable indicates the presence (`1`) or absence (`0`) of malware infection on a given machine.
+This project aims to **predict the probability of a system getting infected by various families of malware** using telemetry data collected by antivirus software. The data consists of machine-level attributes such as OS details, hardware configuration, antivirus versioning, and real-time protection status. This prediction task is framed as a **binary classification problem**, where the `target` variable indicates the presence (`1`) or absence (`0`) of malware infection on a given machine.
 
 ---
 
@@ -9,44 +9,75 @@ This project aims to **predict the probability of a system getting infected by v
 
 The dataset comprises three main CSV files:
 
-- `train.csv` – Contains telemetry data for machines along with the `target` label (1 = malware detected, 0 = no malware).
-- `test.csv` – Contains the same telemetry data without the `target` column. You must predict the `target` for each row.
-- `sample_submission.csv` – Provides the correct format for submitting predictions.
+- `train.csv` – Telemetry data for machines with the `target` malware label.
+- `test.csv` – Same telemetry data without the `target` column.
+- `sample_submission.csv` – Format template for final submission.
 
 Each row corresponds to a unique machine identified by `MachineID`.
 
 ---
 
-## 🧾 Columns Explained
+## 📁 File Columns
 
-Below is a breakdown of key columns in the dataset:
+Sample of some important columns:
 
-| Column Name | Description |
-|-------------|-------------|
-| `MachineID` | Unique identifier for each machine |
-| `ProductName` | Name of the installed antivirus product |
-| `EngineVersion`, `AppVersion`, `SignatureVersion` | Version information for the antivirus engine, application, and malware signatures |
-| `IsBetaUser`, `IsPassiveModeEnabled`, `IsSystemProtected`, `AutoSampleSubmissionEnabled` | Antivirus usage preferences and protection states |
-| `RealTimeProtectionState`, `FirewallEnabled`, `EnableLUA` | System security configurations |
-| `CountryID`, `CityID`, `GeoRegionID` | Geographic information |
-| `OSVersion`, `OSBuildNumber`, `OsPlatformSubRelease`, `SKUEditionName` | Operating system attributes |
-| `Processor`, `ProcessorCoreCount`, `ProcessorManufacturerID` | Processor details |
-| `PrimaryDiskCapacityMB`, `SystemVolumeCapacityMB`, `TotalPhysicalRAMMB` | Hardware specifications |
-| `ChassisType`, `DeviceFamily`, `IsTouchEnabled`, `IsPenCapable`, `IsGamer` | Device form factor and user features |
-| `FirmwareManufacturerID`, `FirmwareVersionID`, `IsSecureBootEnabled`, `IsVirtualDevice` | Firmware and virtualization status |
-| `DateAS`, `DateOS` | Date of malware signature and last OS update |
-| `target` | **Label column**: `1` if malware was detected, else `0` |
+- `MachineID`: Unique Identifier
+- `ProductName`, `EngineVersion`, `AppVersion`, `SignatureVersion`: Antivirus-related versions
+- `IsBetaUser`, `RealTimeProtectionState`, `IsSystemProtected`: Security settings
+- `OSVersion`, `OSBuildNumber`, `Processor`, `RAM`: System info
+- `target`: Malware presence (1 = Yes, 0 = No)
 
-> ⚠️ Many categorical variables are encoded as numeric IDs. Feature decoding and engineering may be required for modeling.
+The dataset includes dozens of additional columns with hardware, software, and region-specific data.
 
 ---
 
-## 🎯 Objective
+## 🧠 My Approach to the Malware Infection Prediction Challenge
 
-Your task is to:
+This section outlines the end-to-end process I followed to tackle the malware prediction competition — from exploring the data to training machine learning models and evaluating their performance.
 
-1. Analyze the provided telemetry features.
-2. Build a machine learning model that predicts the likelihood of malware infection.
-3. Generate a submission file predicting `target` for the test set in the following format:
+### 📌 Step 1: Data Cleaning & Preprocessing
 
+- **Missing Value Treatment**:
+  - Identified multiple placeholder values like `UNKNOWN`, `Unknown`, and `unknown` used to represent missing data.
+  - Replaced these placeholders with `NaN` for consistent handling.
+  - Used `SimpleImputer` with the strategy `"most_frequent"` to fill missing values for both categorical and numerical features.
+
+- **Encoding Categorical Features**:
+  - Identified all object-type columns using `select_dtypes`.
+  - Applied `OrdinalEncoder` to transform categorical features into numerical format to make them compatible with Scikit-learn models.
+
+### 📊 Step 2: Exploratory Data Analysis
+
+- Conducted distribution analysis of the `target` column:
+  - Approximately 50.5% of machines were malware-infected.
+- Explored correlations among features and target.
+- Assessed whether hardware specs (RAM, processor, etc.) and antivirus settings correlated with malware presence.
+
+### 🧪 Step 3: Train-Test Split
+
+Used `train_test_split` to divide the dataset into:
+- 80% training data
+- 20% test data
+Ensured reproducibility with `random_state=42`.
+
+###  🤖 Models Used & Performance
+
+Below is a summary of the machine learning models used in this project along with their respective accuracy scores on the validation set:
+
+| 🔢 Model                | ✅ Accuracy |
+|------------------------|-------------|
+| LGBMClassifier         | **0.62970** |
+| XGBClassifier          | 0.62605     |
+| Random Forest          | 0.61160     |
+| Logistic Regression    | 0.59660     |
+| K-Nearest Neighbors (KNN) | 0.55345  |
+
+### 🔍 Observations:
+- **LGBMClassifier** performed the best, likely due to its efficiency with large feature sets and handling of categorical variables.
+- **XGBClassifier** followed closely, showing strong performance with boosted trees.
+- **Random Forest** provided decent results, though less effective than boosting methods.
+- **Logistic Regression** served as a useful baseline.
+- **KNN** underperformed, likely due to the high dimensionality of the data and its sensitivity to irrelevant features.
+
+Future improvements could focus on hyperparameter tuning and ensembling top-performing models.
 
